@@ -670,3 +670,151 @@ kbd { font: 12px var(--f-mono); padding: 1px 6px; border: 1px solid var(--line);
   .operator-panel { gap: 5px; padding-inline: 5px; }
   .op-key { min-width: 38px; }
 }
+
+/* =========================================
+   CNC SIMULATOR - MOBILE START SCREEN
+   TAHAP 1: HALAMAN AWAL ANDROID
+========================================= */
+
+@media screen and (max-width: 760px) {
+
+  .backstage {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    min-width: 0;
+    height: 100%;
+    min-height: 0;
+    padding: 12px 10px 20px;
+    gap: 12px;
+    overflow-y: auto;
+    overflow-x: hidden;
+  }
+
+  .backstage > .brand-lockup {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    margin: 0;
+  }
+
+  .brand-lockup {
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+
+  .brand-lockup img {
+    width: 48px;
+    height: 48px;
+  }
+
+  .brand-lockup .name {
+    font-size: clamp(28px, 8vw, 38px);
+  }
+
+  .brand-lockup .tagline {
+    font-size: 10px;
+    letter-spacing: 0.1em;
+  }
+
+  .backstage-nav {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+    width: 100%;
+  }
+
+  .backstage-nav .muted {
+    grid-column: 1 / -1;
+    margin: 0;
+  }
+
+  .backstage-nav button {
+    width: 100%;
+    min-height: 46px;
+  }
+
+  .backstage-main {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .backstage-tabs {
+    display: flex;
+    width: 100%;
+    overflow-x: auto;
+    white-space: nowrap;
+    gap: 5px;
+  }
+
+  .backstage-tabs button {
+    flex: 0 0 auto;
+    min-height: 44px;
+    padding: 8px 12px;
+  }
+
+  .file-list {
+    width: 100%;
+    min-width: 0;
+    padding-left: 0;
+  }
+
+  .file-list li {
+    min-width: 0;
+    gap: 5px;
+  }
+
+  .file-item {
+    width: 100%;
+    min-width: 0;
+    min-height: 60px;
+    padding: 8px;
+    gap: 8px;
+  }
+
+  .file-text {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+
+  .file-name {
+    overflow-wrap: anywhere;
+  }
+
+  .file-item .when {
+    display: none;
+  }
+
+  .file-preview.has {
+    width: 65px;
+    height: 55px;
+    flex: 0 0 auto;
+  }
+
+}
+
+/* HP dengan layar sangat kecil */
+@media screen and (max-width: 420px) {
+
+  .backstage {
+    padding: 10px 8px 16px;
+  }
+
+  .backstage-nav {
+    grid-template-columns: 1fr;
+  }
+
+  .backstage-nav .muted {
+    grid-column: auto;
+  }
+
+  .brand-lockup img {
+    width: 42px;
+    height: 42px;
+  }
+
+  .brand-lockup .name {
+    font-size: 29px;
+  }
+
+}
