@@ -1,0 +1,68 @@
+name: Extract project ZIP into repository
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'CNC_Simulator_Android_Android_Port_Updated.zip'
+      - 'CNC_Simulator_Android_Source.zip'
+
+permissions:
+  contents: write
+
+jobs:
+  extract-and-commit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Find and extract project ZIP
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          ZIP_FILE=''
+          if [[ -f 'CNC_Simulator_Android_Android_Port_Updated.zip' ]]; then
+            ZIP_FILE='CNC_Simulator_Android_Android_Port_Updated.zip'
+          elif [[ -f 'CNC_Simulator_Android_Source.zip' ]]; then
+            ZIP_FILE='CNC_Simulator_Android_Source.zip'
+          else
+            echo 'Tidak menemukan ZIP proyek di root repository.'
+            exit 1
+          fi
+
+          mkdir -p .tmp-project-extract
+          unzip -q "$ZIP_FILE" -d .tmp-project-extract
+
+          # Arsip proyek memiliki satu folder utama: CNC_Simulator_Android/
+          if [[ -d '.tmp-project-extract/CNC_Simulator_Android' ]]; then
+            SOURCE_DIR='.tmp-project-extract/CNC_Simulator_Android'
+          else
+            SOURCE_DIR='.tmp-project-extract'
+          fi
+
+          # Salin isi folder proyek ke root repository, bukan membuat folder bertingkat.
+          rsync -a \
+            --exclude='/.git/' \
+            --exclude='/.github/workflows/unzip-project.yml' \
+            "$SOURCE_DIR/" ./
+
+          rm -rf .tmp-project-extract
+          rm -f "$ZIP_FILE"
+
+      - name: Commit extracted files
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          if git diff --cached --quiet; then
+            echo 'Tidak ada perubahan untuk di-commit.'
+            exit 0
+          fi
+          git commit -m 'Extract CNC Simulator project into repository'
+          git push
