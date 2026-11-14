@@ -1,68 +1,74 @@
-name: Extract project ZIP into repository
+
+name: Extract CNC Simulator ZIP
 
 on:
   workflow_dispatch:
   push:
     paths:
-      - 'CNC_Simulator_Android_Android_Port_Updated.zip'
-      - 'CNC_Simulator_Android_Source.zip'
+      - '*.zip'
 
 permissions:
   contents: write
 
 jobs:
-  extract-and-commit:
+  extract:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Find and extract project ZIP
+      - name: Extract ZIP
         shell: bash
         run: |
           set -euo pipefail
 
-          ZIP_FILE=''
-          if [[ -f 'CNC_Simulator_Android_Android_Port_Updated.zip' ]]; then
-            ZIP_FILE='CNC_Simulator_Android_Android_Port_Updated.zip'
-          elif [[ -f 'CNC_Simulator_Android_Source.zip' ]]; then
-            ZIP_FILE='CNC_Simulator_Android_Source.zip'
-          else
-            echo 'Tidak menemukan ZIP proyek di root repository.'
+          ZIP_FILE=$(find . -maxdepth 1 -type f -iname '*.zip' -print -quit)
+
+          if [ -z "$ZIP_FILE" ]; then
+            echo "File ZIP tidak ditemukan!"
             exit 1
           fi
 
-          mkdir -p .tmp-project-extract
-          unzip -q "$ZIP_FILE" -d .tmp-project-extract
+          EXTRACT_DIR="$RUNNER_TEMP/cnc-project"
+          mkdir -p "$EXTRACT_DIR"
 
-          # Arsip proyek memiliki satu folder utama: CNC_Simulator_Android/
-          if [[ -d '.tmp-project-extract/CNC_Simulator_Android' ]]; then
-            SOURCE_DIR='.tmp-project-extract/CNC_Simulator_Android'
-          else
-            SOURCE_DIR='.tmp-project-extract'
+          unzip -q "$ZIP_FILE" -d "$EXTRACT_DIR"
+
+          mapfile -t ITEMS < <(
+            find "$EXTRACT_DIR" -mindepth 1 -maxdepth 1 -print
+          )
+
+          SOURCE_DIR="$EXTRACT_DIR"
+
+          if [ "${#ITEMS[@]}" -eq 1 ] && [ -d "${ITEMS[0]}" ]; then
+            SOURCE_DIR="${ITEMS[0]}"
           fi
 
-          # Salin isi folder proyek ke root repository, bukan membuat folder bertingkat.
           rsync -a \
-            --exclude='/.git/' \
-            --exclude='/.github/workflows/unzip-project.yml' \
+            --exclude='.github/workflows/' \
             "$SOURCE_DIR/" ./
 
-          rm -rf .tmp-project-extract
           rm -f "$ZIP_FILE"
 
-      - name: Commit extracted files
+      - name: Commit and push
         shell: bash
         run: |
           set -euo pipefail
+
           git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git config user.email \
+            '41898282+github-actions[bot]@users.noreply.github.com'
+
           git add -A
+          git reset -- '.github/workflows'
+
           if git diff --cached --quiet; then
-            echo 'Tidak ada perubahan untuk di-commit.'
+            echo "Tidak ada perubahan."
             exit 0
           fi
-          git commit -m 'Extract CNC Simulator project into repository'
+
+          git commit -m "Extract CNC Simulator project"
           git push
