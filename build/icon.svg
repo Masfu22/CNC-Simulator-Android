@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <!-- App icon source: a triangular turning insert (60°, with its clamping hole and cutting edge land)
+       that is also the "play" of the simulation. Regenerate the PNGs with `npm run icons` after editing. -->
+  <defs><linearGradient id="bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#20252a"/><stop offset="1" stop-color="#121518"/></linearGradient></defs>
+  <rect x="100" y="100" width="824" height="824" rx="185" fill="url(#bg)"/>
+  <rect x="101.5" y="101.5" width="821" height="821" rx="183.5" fill="none" stroke="#ffffff" stroke-opacity=".06" stroke-width="3"/>
+  <!-- Insert, nudged right so the triangle looks centred in the tile -->
+  <g transform="translate(8 0)">
+  <path d="M318 262 L782 512 L318 762 Z" fill="#F5B800" stroke="#F5B800" stroke-width="76" stroke-linejoin="round"/>
+  <path d="M352 330 L706 512 L352 694 Z" fill="none" stroke="#C99300" stroke-width="16" stroke-linejoin="round"/>
+  <circle cx="462" cy="512" r="106" fill="#C99300"/>
+  <circle cx="462" cy="512" r="78" fill="#15181B"/>
+  </g>
+</svg>

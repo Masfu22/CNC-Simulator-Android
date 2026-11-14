@@ -1,0 +1,324 @@
+// Material removal for the 3D view: a heightfield on block stock (machining centers), a radius
+// profile on bar stock (turning), and for bars cut with live tools a model of two maps (the outer
+// radius by angle and Z, and the face height by X/Y). Moves are applied one at a time, so the view
+// can follow playback. Rapids do not remove material.
+import { stockSize, type Stock } from './config/project'
+import type { Move, Vec3 } from './types'
+
+/** Top-face heights of a block, one per grid cell. */
+export interface Heightfield {
+  nx: number
+  ny: number
+  /** Scene position of cell (0,0) center and the cell size, in mm. */
+  x0: number
+  y0: number
+  cell: number
+  top: number
+  bottom: number
+  heights: Float32Array
+  /** Cells changed since the view last read them, as [i0, j0, i1, j1] (null: none). */
+  dirty: [number, number, number, number] | null
+}
+
+/** Radius of the bar along Z: index 0 is the face, each step `cell` mm toward the chuck. */
+export interface TurnProfile {
+  face: number
+  cell: number
+  radius: number
+  radii: Float32Array
+}
+
+/** Cells per side at most: enough detail for pockets and contours, light enough to replay while playing. */
+const MAX_CELLS = 260
+
+/** Scene position of the stock corner (block) or face center (bar), from its work offset zero. */
+export const stockOrigin = (s: Stock, zero: Vec3): Vec3 => [zero[0] + (s.offset?.X ?? 0), zero[1] + (s.offset?.Y ?? 0), zero[2] + (s.offset?.Z ?? 0)]
+
+export function createHeightfield(s: Stock, zero: Vec3): Heightfield {
+  const o = stockOrigin(s, zero)
+  const { x: sx, y: sy, z: sz } = stockSize(s)
+  const cell = Math.max(0.25, Math.max(sx, sy) / MAX_CELLS)
+  const nx = Math.max(2, Math.ceil(sx / cell) + 1)
+  const ny = Math.max(2, Math.ceil(sy / cell) + 1)
+  return { nx, ny, x0: o[0], y0: o[1], cell, top: o[2], bottom: o[2] - sz, heights: new Float32Array(nx * ny).fill(o[2]), dirty: null }
+}
+
+export function createProfile(s: Stock, zero: Vec3): TurnProfile {
+  const o = stockOrigin(s, zero)
+  const { length: L, diameter } = stockSize(s)
+  const cell = Math.max(0.1, L / 400)
+  const n = Math.ceil(L / cell) + 1
+  const radius = diameter / 2
+  return { face: o[2], cell, radius, radii: new Float32Array(n).fill(radius) }
+}
+
+/** Points along the move no further apart than `step`, so a tool stamp leaves no gaps. */
+function samples(points: readonly Vec3[], step: number): Vec3[] {
+  const out: Vec3[] = []
+  for (let i = 0; i + 1 < points.length; i++) {
+    const a = points[i] as Vec3
+    const b = points[i + 1] as Vec3
+    const len = Math.hypot(b[0] - a[0], b[1] - a[1], b[2] - a[2])
+    const n = Math.max(1, Math.ceil(len / step))
+    for (let k = i === 0 ? 0 : 1; k <= n; k++) {
+      const f = k / n
+      out.push([a[0] + (b[0] - a[0]) * f, a[1] + (b[1] - a[1]) * f, a[2] + (b[2] - a[2]) * f])
+    }
+  }
+  return out
+}
+
+/** Lowers the heightfield under the tool along a feed move (flat end, or ball end when `ball`). */
+export function cutHeightfield(h: Heightfield, m: Move, ball: boolean): boolean {
+  if (m.kind !== 'feed') return false
+  const r = Math.max(m.toolRadius, h.cell / 2)
+  const path = m.toolCenter ?? m.points
+  const step = Math.max(h.cell * 0.8, r * 0.15)
+  const reach = Math.ceil(r / h.cell)
+  let changed = false
+  for (const [x, y, z] of samples(path, step)) {
+    if (z >= h.top) continue
+    const ci = Math.round((x - h.x0) / h.cell)
+    const cj = Math.round((y - h.y0) / h.cell)
+    for (let j = Math.max(0, cj - reach); j <= Math.min(h.ny - 1, cj + reach); j++) {
+      const dy = h.y0 + j * h.cell - y
+      for (let i = Math.max(0, ci - reach); i <= Math.min(h.nx - 1, ci + reach); i++) {
+        const dx = h.x0 + i * h.cell - x
+        const d2 = dx * dx + dy * dy
+        if (d2 > r * r) continue
+        // Ball end: the tip is the lowest point, the surface rises toward the edge
+        const cut = Math.max(h.bottom, ball ? z + r - Math.sqrt(r * r - d2) : z)
+        const k = j * h.nx + i
+        if (cut < (h.heights[k] ?? h.top)) {
+          h.heights[k] = cut
+          changed = true
+          const d = h.dirty
+          if (!d) h.dirty = [i, j, i, j]
+          else {
+            if (i < d[0]) d[0] = i
+            if (j < d[1]) d[1] = j
+            if (i > d[2]) d[2] = i
+            if (j > d[3]) d[3] = j
+          }
+        }
+      }
+    }
+  }
+  return changed
+}
+
+/** The cells changed since the last call (null: none), and starts tracking again. */
+export function takeDirty(h: Heightfield): [number, number, number, number] | null {
+  const d = h.dirty
+  h.dirty = null
+  return d
+}
+
+/** A cut this close to the axis has faced the bar: the material in front of it is gone. */
+const FACED_TO_CENTER = 0.5
+
+/** Turning: the programmed radius becomes the bar radius where the tip passes (spindle turning, no live tool). */
+export function cutProfile(p: TurnProfile, m: Move): boolean {
+  if (m.kind !== 'feed' || m.state.liveToolOn || !m.state.spindleOn) return false
+  let changed = false
+  /** Deepest slice the move faces down to the center: nothing can be left in front of it. */
+  let faced = -1
+  // The programmed point is the turned surface (nose radius compensation is not drawn on lathes)
+  for (const [x, y, z] of samples(m.points, p.cell)) {
+    const i = Math.round((p.face - z) / p.cell)
+    if (i >= p.radii.length) continue
+    const r = Math.hypot(x, y)
+    if (i >= 0 && r < (p.radii[i] ?? p.radius)) {
+      p.radii[i] = r
+      changed = true
+    }
+    if (r <= FACED_TO_CENTER) faced = Math.max(faced, Math.min(i, p.radii.length - 1))
+  }
+  // Facing to the center at Z0 on a bar whose face is at Z1 takes the whole 1 mm off, not one slice
+  for (let i = 0; i < faced; i++)
+    if ((p.radii[i] ?? 0) > 0) {
+      p.radii[i] = 0
+      changed = true
+    }
+  return changed
+}
+
+/**
+ * Stock that holds everything the program cuts, with `margin` mm around it, rounded up to whole mm.
+ * Block: the corner and top face set by `offset`; bar: diameter and length from the face at Z0.
+ */
+export function stockFromPath(moves: readonly Move[], lathe: boolean, margin = 2): Stock | null {
+  const cuts = moves.filter((m) => m.kind === 'feed')
+  if (!cuts.length) return null
+  const ceil = (v: number) => Math.ceil(v - 1e-9)
+  if (lathe) {
+    let rMax = 0
+    let zMin = Infinity
+    let zMax = -Infinity
+    for (const m of cuts)
+      for (const p of m.points) {
+        rMax = Math.max(rMax, Math.hypot(p[0], p[1]))
+        zMin = Math.min(zMin, p[2])
+        zMax = Math.max(zMax, p[2])
+      }
+    const face = Math.max(0, zMax)
+    return { shape: 'cylinder', diameter: ceil(2 * (rMax + margin)), length: ceil(face - zMin + margin * 3), offset: { Z: face > 0 ? ceil(face) : 0 } }
+  }
+  let [x0, y0, z0, x1, y1, z1] = [Infinity, Infinity, Infinity, -Infinity, -Infinity, -Infinity]
+  for (const m of cuts)
+    for (const p of m.toolCenter ?? m.points) {
+      x0 = Math.min(x0, p[0] - m.toolRadius)
+      x1 = Math.max(x1, p[0] + m.toolRadius)
+      y0 = Math.min(y0, p[1] - m.toolRadius)
+      y1 = Math.max(y1, p[1] + m.toolRadius)
+      z0 = Math.min(z0, p[2])
+      z1 = Math.max(z1, p[2])
+    }
+  // The top face sits at Z0 unless the program only cuts above it
+  const top = z1 > 0 && z0 > 0 ? ceil(z1) : 0
+  const ox = Math.floor(x0 - margin)
+  const oy = Math.floor(y0 - margin)
+  return { shape: 'block', x: ceil(x1 + margin - ox), y: ceil(y1 + margin - oy), z: ceil(top - z0 + margin * 2), offset: { X: ox, Y: oy, Z: top } }
+}
+
+/**
+ * Bar cut with live tools: material is where both maps allow it, inside the outer radius at its angle
+ * and Z (`radii`, turned and radial-milled) and under the face height at its X/Y (`face`, the axial
+ * work: G12.1 contours, axial holes). Turning lowers the radius all around; a radial tool only where
+ * it reaches; an axial tool cuts the face heightfield as an end mill cuts a block.
+ */
+export interface BarModel {
+  /** Z of the bar face (row 0) and the step toward the chuck between rows. */
+  face: number
+  cell: number
+  radius: number
+  /** Angles around the axis (columns) and rows along Z. */
+  nTheta: number
+  nz: number
+  /** radii[row * nTheta + column]: the outer radius there. */
+  radii: Float32Array
+  /** Rows changed since the view last read them, as [row0, row1] (null: none). */
+  dirtyRows: [number, number] | null
+  faceMap: Heightfield
+}
+
+/** Columns around the bar: 2° each. */
+const BAR_ANGLES = 180
+
+export function createBarModel(s: Stock, zero: Vec3): BarModel {
+  const o = stockOrigin(s, zero)
+  const { length: L, diameter } = stockSize(s)
+  const radius = diameter / 2
+  const cell = Math.max(0.2, L / 300)
+  const nz = Math.ceil(L / cell) + 1
+  // The face map covers the bar's cross-section, from its face down the whole length
+  const fc = Math.max(0.2, (2 * radius) / MAX_CELLS)
+  const n = Math.ceil((2 * radius) / fc) + 1
+  const faceMap: Heightfield = { nx: n, ny: n, x0: -radius, y0: -radius, cell: fc, top: o[2], bottom: o[2] - L, heights: new Float32Array(n * n).fill(o[2]), dirty: null }
+  return { face: o[2], cell, radius, nTheta: BAR_ANGLES, nz, radii: new Float32Array(BAR_ANGLES * nz).fill(radius), dirtyRows: null, faceMap }
+}
+
+export const copyBarModel = (b: BarModel): BarModel => ({ ...b, radii: b.radii.slice(), faceMap: { ...b.faceMap, heights: b.faceMap.heights.slice() } })
+
+/** Moves cut with a live tool (axial or radial milling and drilling on a lathe). */
+export const hasLiveCuts = (moves: readonly Move[]) => moves.some((m) => m.kind === 'feed' && m.state.liveToolOn)
+
+function markRows(b: BarModel, r0: number, r1: number) {
+  const d = b.dirtyRows
+  b.dirtyRows = d ? [Math.min(d[0], r0), Math.max(d[1], r1)] : [r0, r1]
+}
+
+/** The rows changed since the last call (null: none), and starts tracking again. */
+export function takeDirtyRows(b: BarModel): [number, number] | null {
+  const d = b.dirtyRows
+  b.dirtyRows = null
+  return d
+}
+
+/**
+ * Applies a move to the bar: turning (spindle on, no live tool) lowers the radius all around; a live
+ * tool cuts the face map when `radial` is false (along Z) or the radius near its angle when true.
+ */
+export function cutBar(b: BarModel, m: Move, radial: boolean, ball = false): boolean {
+  if (m.kind !== 'feed') return false
+  if (!m.state.liveToolOn) return m.state.spindleOn ? turnBar(b, m) : false
+  return radial ? radialCut(b, m) : cutHeightfield(b.faceMap, m, ball)
+}
+
+function turnBar(b: BarModel, m: Move): boolean {
+  let changed = false
+  let faced = -1
+  const row = (r: number, value: number) => {
+    let hit = false
+    for (let c = 0; c < b.nTheta; c++) {
+      const k = r * b.nTheta + c
+      if (value < (b.radii[k] ?? b.radius)) {
+        b.radii[k] = value
+        hit = true
+      }
+    }
+    if (hit) markRows(b, r, r)
+    return hit
+  }
+  for (const [x, y, z] of samples(m.points, b.cell)) {
+    const i = Math.round((b.face - z) / b.cell)
+    if (i >= b.nz) continue
+    const r = Math.hypot(x, y)
+    if (i >= 0 && row(i, r)) changed = true
+    if (r <= FACED_TO_CENTER) faced = Math.max(faced, Math.min(i, b.nz - 1))
+  }
+  for (let i = 0; i < faced; i++) if (row(i, 0)) changed = true
+  return changed
+}
+
+/**
+ * Radial live tool (its axis toward the spindle axis): the flat end at the tip's radius leaves a flat
+ * face, so at an angle Δθ from the tip the radius becomes r / cos Δθ, within the tool's circle.
+ */
+function radialCut(b: BarModel, m: Move): boolean {
+  const tr = Math.max(m.toolRadius, b.cell / 2)
+  const step = (2 * Math.PI) / b.nTheta
+  let changed = false
+  for (const [x, y, z] of samples(m.toolCenter ?? m.points, Math.min(b.cell, tr * 0.3))) {
+    const r = Math.hypot(x, y)
+    if (r < 1e-6) continue
+    const t = Math.atan2(y, x)
+    const half = Math.atan(tr / r)
+    const c0 = Math.floor((t - half) / step)
+    const c1 = Math.ceil((t + half) / step)
+    const i0 = Math.max(0, Math.floor((b.face - (z + tr)) / b.cell))
+    const i1 = Math.min(b.nz - 1, Math.ceil((b.face - (z - tr)) / b.cell))
+    for (let i = i0; i <= i1; i++) {
+      const dz = b.face - i * b.cell - z
+      let hit = false
+      for (let cc = c0; cc <= c1; cc++) {
+        const d = cc * step - t
+        const w = r * Math.tan(d)
+        if (w * w + dz * dz > tr * tr) continue
+        const c = ((cc % b.nTheta) + b.nTheta) % b.nTheta
+        const k = i * b.nTheta + c
+        const value = r / Math.cos(d)
+        if (value < (b.radii[k] ?? b.radius)) {
+          b.radii[k] = value
+          hit = true
+        }
+      }
+      if (hit) {
+        markRows(b, i, i)
+        changed = true
+      }
+    }
+  }
+  return changed
+}
+
+/** Where the work zero sits on a block: a top corner or the top center. */
+export type ZeroAt = 'front-left' | 'front-right' | 'back-left' | 'back-right' | 'center'
+
+/** Stock offset that puts the work zero at that point of the block's top face. */
+export function offsetForZero(s: Stock, at: ZeroAt): NonNullable<Stock['offset']> {
+  const { x, y } = stockSize(s)
+  const fx = at === 'center' ? 0.5 : at.endsWith('right') ? 1 : 0
+  const fy = at === 'center' ? 0.5 : at.startsWith('back') ? 1 : 0
+  return { X: 0 - x * fx, Y: 0 - y * fy, Z: 0 }
+}
