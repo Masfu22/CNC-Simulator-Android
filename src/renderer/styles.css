@@ -933,3 +933,199 @@ kbd { font: 12px var(--f-mono); padding: 1px 6px; border: 1px solid var(--line);
     padding-right: 10px;
   }
 }
+
+/* =========================================
+   CNC SMARTGEN / CNC SIMULATOR
+   TAHAP 3 - MOBILE MACHINE CONTROL PANEL
+========================================= */
+
+@media screen and (max-width: 760px) {
+
+  /* Panel kontrol mesin */
+  .mp-top {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    min-width: 0;
+  }
+
+  /* Layar informasi CNC */
+  .mp-screen {
+    width: 100%;
+    min-width: 0;
+    overflow-x: auto;
+    overflow-y: auto;
+    font-size: 13px;
+    line-height: 1.5;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Informasi status mesin */
+  .mp-status {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    width: 100%;
+    min-width: 0;
+  }
+
+  /* Tampilan koordinat X, Z dan posisi */
+  .mp-pos {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+    width: 100%;
+    min-width: 0;
+  }
+
+  /* Area MDI */
+  .mdi {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    overflow: hidden;
+  }
+
+  .mdi-key {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 42px;
+    min-height: 42px;
+    padding: 7px;
+    font-size: 13px;
+    touch-action: manipulation;
+  }
+
+  /* Softkey CNC */
+  .softkeys {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 5px;
+    width: 100%;
+    min-width: 0;
+  }
+
+  .sk {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 0;
+    min-height: 44px;
+    padding: 5px 3px;
+    font-size: 11px;
+    text-align: center;
+    overflow-wrap: anywhere;
+    touch-action: manipulation;
+  }
+
+  /* Panel operator */
+  .operator-panel {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    width: 100%;
+    min-width: 0;
+    padding: 10px;
+  }
+
+  /* Tombol operator */
+  .op-key {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 46px;
+    min-height: 46px;
+    padding: 8px;
+    font-size: 12px;
+    touch-action: manipulation;
+  }
+
+  .op-round {
+    min-width: 48px;
+    min-height: 48px;
+    touch-action: manipulation;
+  }
+
+  /* Area knop / pengatur */
+  .op-knobs {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 12px;
+    max-width: 100%;
+  }
+
+  .knob {
+    max-width: 100%;
+  }
+
+  .knob button {
+    min-width: 42px;
+    min-height: 42px;
+    touch-action: manipulation;
+  }
+
+  /* Semua tombol kontrol */
+  .operator-panel button,
+  .mdi button,
+  .softkeys button {
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Hindari elemen keluar layar */
+  .mp-top *,
+  .mp-screen *,
+  .operator-panel *,
+  .mdi *,
+  .softkeys * {
+    box-sizing: border-box;
+    min-width: 0;
+  }
+}
+
+/* HP layar kecil */
+@media screen and (max-width: 420px) {
+
+  .mp-screen {
+    font-size: 11px;
+  }
+
+  .mp-pos {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .softkeys {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 3px;
+  }
+
+  .sk {
+    min-height: 42px;
+    font-size: 9px;
+    padding: 3px 1px;
+  }
+
+  .mdi-key {
+    min-width: 40px;
+    min-height: 40px;
+    font-size: 11px;
+  }
+
+  .op-key {
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  .op-round {
+    min-width: 46px;
+    min-height: 46px;
+  }
+}
+
