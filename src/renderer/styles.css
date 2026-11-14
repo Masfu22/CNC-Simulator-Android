@@ -820,909 +820,383 @@ kbd { font: 12px var(--f-mono); padding: 1px 6px; border: 1px solid var(--line);
 }
 
 
-/* =========================================
-   CNC SIMULATOR - MOBILE WORKSPACE
-   TAHAP 2: AREA KERJA ANDROID
-========================================= */
+/* ==========================================
+   CNC SIMULATOR - ANDROID LAYOUT REPAIR
+   TAHAP 7B
+   RESPONSIVE LAYOUT BERDASARKAN DOM ASLI
+========================================== */
 
 @media screen and (max-width: 760px) {
 
-  /* Area utama aplikasi */
-  .workspace {
+  /* APP HEADER DAN TAB */
+  .app {
     width: 100%;
     min-width: 0;
-    max-width: 100%;
+    height: 100%;
+    overflow: hidden;
+  }
+
+  .titlebar {
+    flex: none;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 6px;
+    padding: 8px;
+    min-width: 0;
+  }
+
+  .brand-mark {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .doc-tabs {
+    width: 100%;
+    min-height: 40px;
+    overflow-x: auto;
+    align-items: center;
+  }
+
+  .doc-tab {
+    flex: 0 0 auto;
+    min-width: 100px;
+  }
+
+  .titlebar-right {
+    width: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: 0;
+  }
+
+  .browser-file {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+  }
+
+  /* AREA DOKUMEN */
+  .workspace {
+    flex: 1;
+    width: 100%;
+    min-width: 0;
+    min-height: 0;
+    padding: 6px;
+    gap: 8px;
+    overflow-y: auto;
     overflow-x: hidden;
   }
 
-  /* Susunan area kerja menjadi satu kolom */
-  .layout {
+  /* MODEL / CAD LAYOUT */
+  .model-layout {
     display: flex;
     flex-direction: column;
     width: 100%;
     min-width: 0;
-    height: auto;
     min-height: 0;
-    overflow: visible;
+    height: auto;
     gap: 10px;
+    overflow: visible;
   }
 
-  /* Hilangkan pembatas kolom desktop */
-  .splitter {
+  .model-layout > .view {
+    order: 0;
+    width: 100%;
+    min-width: 0;
+    min-height: 300px;
+    height: 42vh;
+    max-height: 420px;
+    margin: 0;
+    flex: none;
+  }
+
+  .model-layout .splitter {
     display: none !important;
   }
 
-  /* Area tampilan simulasi */
-  .view {
-    width: 100%;
-    min-width: 0;
-    min-height: 280px;
-    height: 42vh;
-    max-height: 430px;
-    flex: none;
-    overflow: hidden;
-    border-radius: 10px;
-  }
-
-  /* Kanvas simulasi */
-  .view canvas,
-  .view svg {
-    max-width: 100%;
-  }
-
-  /* Panel-panel kerja */
-  .panel {
-    width: 100%;
-    min-width: 0;
-    max-width: 100%;
-    height: auto;
-    min-height: 180px;
-    max-height: none;
-    flex: none;
-    overflow: visible;
-    box-sizing: border-box;
-  }
-
-  /* Editor kode */
-  .panel textarea,
-  .panel pre,
-  .panel .editor,
-  .panel .code-editor {
-    max-width: 100%;
-    box-sizing: border-box;
-  }
-
-  /* Area yang memiliki tabel */
-  .panel table {
-    width: 100%;
-    max-width: 100%;
-  }
-
-  /* Tombol lebih nyaman disentuh */
-  .panel button,
-  .view button {
-    min-height: 40px;
-    touch-action: manipulation;
-  }
-
-  /* Mencegah konten melebar keluar layar */
-  .workspace *,
-  .layout * {
-    min-width: 0;
-    box-sizing: border-box;
-  }
-}
-
-/* HP dengan layar kecil */
-@media screen and (max-width: 420px) {
-
-  .view {
-    height: 38vh;
-    min-height: 240px;
-    max-height: 340px;
-  }
-
-  .panel {
-    padding: 8px;
-  }
-
-  .panel button,
-  .view button {
-    min-height: 42px;
-    padding-left: 10px;
-    padding-right: 10px;
-  }
-}
-
-/* =========================================
-   CNC SMARTGEN / CNC SIMULATOR
-   TAHAP 3 - MOBILE MACHINE CONTROL PANEL
-========================================= */
-
-@media screen and (max-width: 760px) {
-
-  /* Panel kontrol mesin */
-  .mp-top {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 8px;
-    width: 100%;
-    min-width: 0;
-  }
-
-  /* Layar informasi CNC */
-  .mp-screen {
-    width: 100%;
-    min-width: 0;
-    overflow-x: auto;
-    overflow-y: auto;
-    font-size: 13px;
-    line-height: 1.5;
-    -webkit-overflow-scrolling: touch;
-  }
-
-  /* Informasi status mesin */
-  .mp-status {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 6px;
-    width: 100%;
-    min-width: 0;
-  }
-
-  /* Tampilan koordinat X, Z dan posisi */
-  .mp-pos {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 8px;
-    width: 100%;
-    min-width: 0;
-  }
-
-  /* Area MDI */
-  .mdi {
-    width: 100%;
-    min-width: 0;
-    max-width: 100%;
-    overflow: hidden;
-  }
-
-  .mdi-key {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    min-width: 42px;
-    min-height: 42px;
-    padding: 7px;
-    font-size: 13px;
-    touch-action: manipulation;
-  }
-
-  /* Softkey CNC */
-  .softkeys {
-    display: grid;
-    grid-template-columns: repeat(5, minmax(0, 1fr));
-    gap: 5px;
-    width: 100%;
-    min-width: 0;
-  }
-
-  .sk {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    min-width: 0;
-    min-height: 44px;
-    padding: 5px 3px;
-    font-size: 11px;
-    text-align: center;
-    overflow-wrap: anywhere;
-    touch-action: manipulation;
-  }
-
-  /* Panel operator */
-  .operator-panel {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    width: 100%;
-    min-width: 0;
-    padding: 10px;
-  }
-
-  /* Tombol operator */
-  .op-key {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    min-width: 46px;
-    min-height: 46px;
-    padding: 8px;
-    font-size: 12px;
-    touch-action: manipulation;
-  }
-
-  .op-round {
-    min-width: 48px;
-    min-height: 48px;
-    touch-action: manipulation;
-  }
-
-  /* Area knop / pengatur */
-  .op-knobs {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 12px;
-    max-width: 100%;
-  }
-
-  .knob {
-    max-width: 100%;
-  }
-
-  .knob button {
-    min-width: 42px;
-    min-height: 42px;
-    touch-action: manipulation;
-  }
-
-  /* Semua tombol kontrol */
-  .operator-panel button,
-  .mdi button,
-  .softkeys button {
-    cursor: pointer;
-    -webkit-tap-highlight-color: transparent;
-  }
-
-  /* Hindari elemen keluar layar */
-  .mp-top *,
-  .mp-screen *,
-  .operator-panel *,
-  .mdi *,
-  .softkeys * {
-    box-sizing: border-box;
-    min-width: 0;
-  }
-}
-
-/* HP layar kecil */
-@media screen and (max-width: 420px) {
-
-  .mp-screen {
-    font-size: 11px;
-  }
-
-  .mp-pos {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .softkeys {
-    grid-template-columns: repeat(5, minmax(0, 1fr));
-    gap: 3px;
-  }
-
-  .sk {
-    min-height: 42px;
-    font-size: 9px;
-    padding: 3px 1px;
-  }
-
-  .mdi-key {
-    min-width: 40px;
-    min-height: 40px;
-    font-size: 11px;
-  }
-
-  .op-key {
-    min-width: 44px;
-    min-height: 44px;
-  }
-
-  .op-round {
-    min-width: 46px;
-    min-height: 46px;
-  }
-}
-
-
-/* =========================================
-   CNC SMARTGEN / CNC SIMULATOR
-   TAHAP 3 - MOBILE MACHINE CONTROL PANEL
-========================================= */
-
-@media screen and (max-width: 760px) {
-
-  /* Panel kontrol mesin */
-  .mp-top {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 8px;
-    width: 100%;
-    min-width: 0;
-  }
-
-  /* Layar informasi CNC */
-  .mp-screen {
-    width: 100%;
-    min-width: 0;
-    overflow-x: auto;
-    overflow-y: auto;
-    font-size: 13px;
-    line-height: 1.5;
-    -webkit-overflow-scrolling: touch;
-  }
-
-  /* Informasi status mesin */
-  .mp-status {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 6px;
-    width: 100%;
-    min-width: 0;
-  }
-
-  /* Tampilan koordinat X, Z dan posisi */
-  .mp-pos {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 8px;
-    width: 100%;
-    min-width: 0;
-  }
-
-  /* Area MDI */
-  .mdi {
-    width: 100%;
-    min-width: 0;
-    max-width: 100%;
-    overflow: hidden;
-  }
-
-  .mdi-key {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    min-width: 42px;
-    min-height: 42px;
-    padding: 7px;
-    font-size: 13px;
-    touch-action: manipulation;
-  }
-
-  /* Softkey CNC */
-  .softkeys {
-    display: grid;
-    grid-template-columns: repeat(5, minmax(0, 1fr));
-    gap: 5px;
-    width: 100%;
-    min-width: 0;
-  }
-
-  .sk {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    min-width: 0;
-    min-height: 44px;
-    padding: 5px 3px;
-    font-size: 11px;
-    text-align: center;
-    overflow-wrap: anywhere;
-    touch-action: manipulation;
-  }
-
-  /* Panel operator */
-  .operator-panel {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    width: 100%;
-    min-width: 0;
-    padding: 10px;
-  }
-
-  /* Tombol operator */
-  .op-key {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    min-width: 46px;
-    min-height: 46px;
-    padding: 8px;
-    font-size: 12px;
-    touch-action: manipulation;
-  }
-
-  .op-round {
-    min-width: 48px;
-    min-height: 48px;
-    touch-action: manipulation;
-  }
-
-  /* Area knop / pengatur */
-  .op-knobs {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 12px;
-    max-width: 100%;
-  }
-
-  .knob {
-    max-width: 100%;
-  }
-
-  .knob button {
-    min-width: 42px;
-    min-height: 42px;
-    touch-action: manipulation;
-  }
-
-  /* Semua tombol kontrol */
-  .operator-panel button,
-  .mdi button,
-  .softkeys button {
-    cursor: pointer;
-    -webkit-tap-highlight-color: transparent;
-  }
-
-  /* Hindari elemen keluar layar */
-  .mp-top *,
-  .mp-screen *,
-  .operator-panel *,
-  .mdi *,
-  .softkeys * {
-    box-sizing: border-box;
-    min-width: 0;
-  }
-}
-
-/* HP layar kecil */
-@media screen and (max-width: 420px) {
-
-  .mp-screen {
-    font-size: 11px;
-  }
-
-  .mp-pos {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .softkeys {
-    grid-template-columns: repeat(5, minmax(0, 1fr));
-    gap: 3px;
-  }
-
-  .sk {
-    min-height: 42px;
-    font-size: 9px;
-    padding: 3px 1px;
-  }
-
-  .mdi-key {
-    min-width: 40px;
-    min-height: 40px;
-    font-size: 11px;
-  }
-
-  .op-key {
-    min-width: 44px;
-    min-height: 44px;
-  }
-
-  .op-round {
-    min-width: 46px;
-    min-height: 46px;
-  }
-}
-
-
-/* =========================================
-   CNC SIMULATOR
-   TAHAP 5 - MOBILE NAVIGATION & DIALOG
-========================================= */
-
-@media screen and (max-width: 760px) {
-
-  /* Header aplikasi */
-  header,
-  .app-header,
-  .topbar,
-  .toolbar {
-    max-width: 100%;
-    min-width: 0;
-    box-sizing: border-box;
-  }
-
-  .app-header,
-  .topbar {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 8px;
-    padding: 8px 10px;
-  }
-
-  /* Judul aplikasi */
-  .app-header h1,
-  .topbar h1 {
-    font-size: 18px;
-    line-height: 1.3;
-    overflow-wrap: anywhere;
-  }
-
-  /* Navigasi utama */
-  nav,
-  .navigation,
-  .main-nav,
-  .app-nav {
-    max-width: 100%;
-    min-width: 0;
-    box-sizing: border-box;
-  }
-
-  .navigation,
-  .main-nav,
-  .app-nav {
-    display: flex;
-    flex-wrap: nowrap;
-    gap: 6px;
-    width: 100%;
-    overflow-x: auto;
-    overflow-y: hidden;
-    padding: 6px;
-    white-space: nowrap;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: thin;
-  }
-
-  .navigation button,
-  .main-nav button,
-  .app-nav button {
-    flex: 0 0 auto;
-    min-height: 44px;
-    padding: 8px 12px;
-    white-space: nowrap;
-    touch-action: manipulation;
-  }
-
-  /* Menu samping */
-  .sidebar,
-  .side-menu,
-  .app-sidebar {
-    width: 100%;
-    max-width: 100%;
-    min-width: 0;
-    box-sizing: border-box;
-  }
-
-  /* Menu dan daftar */
-  .menu,
-  .dropdown-menu,
-  .context-menu {
-    max-width: calc(100vw - 24px);
-    min-width: 0;
-    box-sizing: border-box;
-    overflow-wrap: anywhere;
-  }
-
-  .menu button,
-  .dropdown-menu button,
-  .context-menu button {
-    width: 100%;
-    min-height: 44px;
-    text-align: left;
-    touch-action: manipulation;
-  }
-
-  /* Dialog dan modal */
-  .modal,
-  .dialog,
-  .popup,
-  .modal-content,
-  .dialog-content {
-    box-sizing: border-box;
-    max-width: calc(100vw - 24px);
-    max-height: calc(100dvh - 32px);
-    overflow-y: auto;
-    overscroll-behavior: contain;
-  }
-
-  .modal,
-  .dialog,
-  .popup {
-    margin: 12px auto;
-  }
-
-  /* Latar belakang modal */
-  .modal-overlay,
-  .dialog-overlay,
-  .popup-overlay {
-    padding: 12px;
-    box-sizing: border-box;
-    overflow-y: auto;
-    align-items: center;
-    justify-content: center;
-  }
-
-  /* Isi dialog */
-  .modal-content,
-  .dialog-content {
-    width: 100%;
-    min-width: 0;
-    padding: 14px;
-    border-radius: 12px;
-  }
-
-  /* Tombol dialog */
-  .modal button,
-  .dialog button,
-  .popup button,
-  .modal-content button,
-  .dialog-content button {
-    min-height: 44px;
-    touch-action: manipulation;
-  }
-
-  /* Area notifikasi */
-  .notification,
-  .toast,
-  .alert {
-    max-width: calc(100vw - 24px);
-    box-sizing: border-box;
-    overflow-wrap: anywhere;
-  }
-
-  /* Area status dan pesan */
-  .status-bar,
-  .status-message {
-    width: 100%;
-    min-width: 0;
-    max-width: 100%;
-    box-sizing: border-box;
-    overflow-wrap: anywhere;
-  }
-
-  /* Tombol ikon */
-  .icon-button,
-  .menu-button,
-  .close-button {
-    min-width: 44px;
-    min-height: 44px;
-    touch-action: manipulation;
-  }
-
-  /* Mencegah konten melebar */
-  .app-header *,
-  .topbar *,
-  .navigation *,
-  .main-nav *,
-  .app-nav * {
-    box-sizing: border-box;
-    min-width: 0;
-  }
-}
-
-/* Optimasi layar kecil */
-@media screen and (max-width: 420px) {
-
-  .app-header,
-  .topbar {
-    padding: 7px 8px;
-  }
-
-  .app-header h1,
-  .topbar h1 {
-    font-size: 16px;
-  }
-
-  .navigation button,
-  .main-nav button,
-  .app-nav button {
-    min-height: 46px;
-    padding: 8px 10px;
-    font-size: 12px;
-  }
-
-  .modal-content,
-  .dialog-content {
-    padding: 11px;
-  }
-
-  .modal-overlay,
-  .dialog-overlay,
-  .popup-overlay {
-    padding: 8px;
-  }
-
-  .notification,
-  .toast,
-  .alert {
-    font-size: 12px;
-  }
-}
-
-
-/* =========================================
-   CNC SIMULATOR
-   TAHAP 6 - ANDROID RESPONSIVE OPTIMIZATION
-========================================= */
-
-/* Pengaturan dasar layar */
-html,
-body,
-#root {
-  width: 100%;
-  min-width: 0;
-  max-width: 100%;
-  min-height: 100%;
-  margin: 0;
-  box-sizing: border-box;
-}
-
-*,
-*::before,
-*::after {
-  box-sizing: border-box;
-}
-
-@media screen and (max-width: 760px) {
-
-  /* Cegah halaman melebar */
-  html,
-  body,
-  #root {
-    overflow-x: hidden;
-  }
-
-  body {
-    -webkit-text-size-adjust: 100%;
-    overscroll-behavior-x: none;
-  }
-
-  /* Area aplikasi */
-  #root {
+  .model-left {
+    order: 1;
     display: flex;
     flex-direction: column;
-  }
-
-  /* Kontainer utama */
-  .app,
-  .app-container,
-  .workspace,
-  .main-content {
     width: 100%;
     min-width: 0;
-    max-width: 100%;
-    box-sizing: border-box;
-  }
-
-  /* Perbaikan scroll */
-  .workspace,
-  .main-content,
-  .panel,
-  .view {
-    overscroll-behavior: contain;
-    -webkit-overflow-scrolling: touch;
-  }
-
-  /* Konten tidak melewati layar */
-  img,
-  video,
-  canvas,
-  svg {
-    max-width: 100%;
-  }
-
-  /* Teks panjang */
-  h1,
-  h2,
-  h3,
-  p,
-  span {
-    overflow-wrap: break-word;
-  }
-
-  /* Area tombol */
-  button,
-  [role="button"] {
-    -webkit-tap-highlight-color: transparent;
-    touch-action: manipulation;
-  }
-
-  /* Area scroll horizontal yang disengaja */
-  .navigation,
-  .main-nav,
-  .app-nav,
-  .backstage-tabs,
-  .editor-toolbar {
-    overscroll-behavior-x: contain;
-  }
-
-  /* Scrollbar lebih tipis */
-  * {
-    scrollbar-width: thin;
-  }
-
-  /* Jangan biarkan tabel memperlebar halaman */
-  table {
-    max-width: 100%;
-  }
-}
-
-/* =========================================
-   MODE PORTRAIT
-========================================= */
-
-@media screen and (max-width: 760px) and (orientation: portrait) {
-
-  .layout {
-    flex-direction: column;
-  }
-
-  .view {
-    width: 100%;
-    max-height: 430px;
-  }
-
-  .panel {
-    width: 100%;
-  }
-}
-
-/* =========================================
-   MODE LANDSCAPE
-========================================= */
-
-@media screen and (max-width: 900px) and (orientation: landscape) {
-
-  .workspace {
     min-height: 0;
-    overflow-y: auto;
+    height: auto;
+    gap: 10px;
   }
 
-  .view {
-    height: 65vh;
-    min-height: 200px;
-    max-height: 420px;
+  .feature-tree {
+    width: 100%;
+    max-width: 100%;
+    max-height: 260px;
+    overflow: auto;
   }
 
-  .panel {
-    min-height: 140px;
+  .model-left > .panel {
+    width: 100%;
+    min-width: 0;
+    min-height: 300px;
+    height: 55vh;
+    flex: none;
+  }
+
+  /* AREA 3D */
+  .stage {
+    position: relative;
+    width: 100%;
+    min-width: 0;
+    min-height: 240px;
+    flex: 1;
+    overflow: hidden;
+  }
+
+  .view-toolbar {
+    max-width: calc(100% - 12px);
+    overflow-x: auto;
+  }
+
+  /* MACHINE PANEL */
+  .machine-panel {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    min-width: 0;
+    height: auto;
+    min-height: 0;
+    flex: none;
+    gap: 10px;
+    padding: 8px;
+  }
+
+  .mp-top {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    min-width: 0;
+    min-height: 0;
+    height: auto;
+    gap: 10px;
+    flex: none;
+  }
+
+  .mp-display {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    min-width: 0;
+    min-height: 0;
+    gap: 8px;
   }
 
   .mp-screen {
-    max-height: 45vh;
-    overflow-y: auto;
-  }
-}
-
-/* =========================================
-   LAYAR SANGAT KECIL
-========================================= */
-
-@media screen and (max-width: 360px) {
-
-  .backstage {
-    padding-left: 7px;
-    padding-right: 7px;
+    width: 100%;
+    min-width: 0;
+    min-height: 340px;
+    height: 48vh;
+    max-height: 500px;
+    overflow: auto;
   }
 
-  .view {
+  .mp-status {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 6px;
+  }
+
+  /* LAYAR GRAFIK DAN PROGRAM */
+  .mp-body {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: minmax(240px, 40vh) auto;
+    width: 100%;
+    min-width: 0;
+    min-height: 0;
+    flex: none;
+  }
+
+  .mp-body.full {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: minmax(300px, 50vh);
+  }
+
+  .mp-body .splitter {
+    display: none !important;
+  }
+
+  .mp-body > .panel {
+    width: 100%;
+    min-width: 0;
+    min-height: 240px;
+  }
+
+  .mp-page .stage {
     min-height: 220px;
   }
 
+  .mp-scroll {
+    min-width: 0;
+    max-height: 45vh;
+    overflow: auto;
+  }
+
+  /* KEYPAD MDI */
+  .mdi {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    padding: 8px;
+    gap: 8px;
+  }
+
+  .mdi-grid {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 5px;
+    width: 100%;
+  }
+
+  .mdi-key {
+    width: 100%;
+    min-width: 0;
+    height: 42px;
+    font-size: 12px;
+  }
+
+  /* SOFTKEY FISIK */
+  .softkeys {
+    display: grid;
+    grid-template-columns: 20px repeat(10, minmax(0, 1fr)) 20px;
+    gap: 3px;
+    width: 100%;
+    padding: 0;
+  }
+
+  .sk {
+    min-width: 0;
+    height: 38px;
+    padding: 2px;
+    font-size: 9px;
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+
+  /* PANEL OPERATOR */
+  .operator-panel {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    min-width: 0;
+    gap: 10px;
+    padding: 10px;
+  }
+
+  .op-mode-keys,
+  .op-keys {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 6px;
+  }
+
+  .op-key {
+    min-width: 48px;
+    min-height: 46px;
+  }
+
+  .op-run {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+  }
+
+  .op-round {
+    width: 54px;
+    height: 54px;
+  }
+
+  .op-knobs {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    width: 100%;
+    gap: 12px;
+    margin-left: 0;
+  }
+
+  .knob button {
+    width: 54px;
+    height: 54px;
+  }
+
+  /* PLAYER / SIMULATION CONTROL */
+  .player {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    width: 100%;
+    min-width: 0;
+    gap: 8px;
+    padding: 8px;
+  }
+
+  .player input[type="range"] {
+    flex: 1 1 100%;
+    min-width: 0;
+  }
+
+  .player .track {
+    flex: 1 1 100%;
+    min-width: 0;
+  }
+
+  /* PANEL DAN TOMBOL */
   .panel {
-    padding: 6px;
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .panel-title {
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .panel-title .zoom {
+    flex-wrap: wrap;
+  }
+
+  .btn {
+    min-height: 38px;
+    touch-action: manipulation;
+  }
+}
+
+/* LAYAR HP KECIL */
+@media screen and (max-width: 420px) {
+
+  .workspace {
+    padding: 5px;
+  }
+
+  .model-layout > .view {
+    height: 38vh;
+    min-height: 250px;
+  }
+
+  .mp-screen {
+    height: 44vh;
+    min-height: 300px;
+  }
+
+  .mdi-key {
+    height: 40px;
+    font-size: 11px;
   }
 
   .softkeys {
@@ -1730,31 +1204,12 @@ body,
   }
 
   .sk {
+    height: 34px;
     font-size: 8px;
-    padding: 2px;
   }
 
-  button {
-    max-width: 100%;
-  }
-}
-
-/* =========================================
-   AKSESIBILITAS SENTUHAN
-========================================= */
-
-@media (pointer: coarse) {
-
-  button,
-  input[type="button"],
-  input[type="submit"],
-  select {
-    min-height: 42px;
-  }
-
-  input[type="checkbox"],
-  input[type="radio"] {
-    min-width: 20px;
-    min-height: 20px;
+  .panel-title {
+    padding: 6px;
   }
 }
+
