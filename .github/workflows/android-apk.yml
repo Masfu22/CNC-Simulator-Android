@@ -1,3 +1,4 @@
+
 name: Build CNC Simulator Android APK
 
 on:
@@ -6,15 +7,6 @@ on:
     branches:
       - main
       - master
-    paths:
-      - 'src/**'
-      - 'android/**'
-      - 'configs/**'
-      - 'examples/**'
-      - 'package.json'
-      - 'package-lock.json'
-      - 'tsconfig*.json'
-      - '.github/workflows/android-apk.yml'
 
 permissions:
   contents: read
@@ -27,61 +19,75 @@ jobs:
   build-apk:
     name: Build Android APK
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 60
 
     steps:
       - name: Checkout source
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - name: Setup Node.js 24
+        uses: actions/setup-node@v7
         with:
-          node-version: '22.12'
+          node-version: '24'
           cache: npm
 
-      - name: Setup Java JDK
-        uses: actions/setup-java@v4
+      - name: Setup JDK 17
+        uses: actions/setup-java@v6
         with:
           distribution: temurin
           java-version: '17'
 
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
+      - name: Setup Android SDK 36
+        uses: android-actions/setup-android@v4
+        with:
+          packages: 'platform-tools platforms;android-36 build-tools;36.0.0'
+          accept-android-sdk-licenses: 'true'
+          log-accepted-android-sdk-licenses: 'false'
 
-      - name: Install Android SDK packages
+      - name: Verify build tools
         run: |
-          sdkmanager "platforms;android-36" "build-tools;36.0.0"
-          yes | sdkmanager --licenses
+          node --version
+          npm --version
+          java -version
+          sdkmanager --version
+          sdkmanager --list_installed
 
-      - name: Install dependencies
-        run: npm ci
+      - name: Install npm dependencies
+        run: npm ci --no-audit --no-fund
 
-      - name: Check source code
+      - name: Run project checks
         run: npm run check
 
-      - name: Build web renderer
+      - name: Build browser renderer
         run: npm run build:only
 
-      - name: Copy web files into Android assets
+      - name: Copy renderer into Android WebView assets
         run: |
           set -euo pipefail
-          test -d out/renderer
+          test -s out/renderer/index.html
           mkdir -p android/app/src/main/assets/www
+          rm -rf android/app/src/main/assets/www/*
           cp -R out/renderer/. android/app/src/main/assets/www/
-          test -f android/app/src/main/assets/www/index.html
+          test -s android/app/src/main/assets/www/index.html
 
-      - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v4
+      - name: Setup Gradle 8.13
+        uses: gradle/actions/setup-gradle@v6
         with:
           gradle-version: '8.13'
 
-      - name: Build APK
-        run: gradle -p android --no-daemon assembleDebug
+      - name: Build debug APK
+        run: gradle -p android --no-daemon --stacktrace assembleDebug
 
-      - name: Upload APK
-        uses: actions/upload-artifact@v4
+      - name: Verify APK
+        run: |
+          APK="android/app/build/outputs/apk/debug/app-debug.apk"
+          test -s "$APK"
+          ls -lh "$APK"
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v7
         with:
-          name: cnc-simulator-android-debug
+          name: CNC-Simulator-Android-debug
           path: android/app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
           retention-days: 14
